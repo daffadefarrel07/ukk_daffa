@@ -17,8 +17,9 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $fillable = [
+protected $fillable = [
         'name',
+        'nis',
         'email',
         'password',
         'is_admin',
@@ -44,6 +45,11 @@ class User extends Authenticatable
         'password' => 'hashed',
         'is_admin' => 'boolean',
     ];
+
+public function username()
+    {
+        return $this->nis ?? $this->email;
+    }
 
     public function siswa()
     {

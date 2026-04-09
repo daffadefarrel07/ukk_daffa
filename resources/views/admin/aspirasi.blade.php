@@ -35,15 +35,20 @@
                 </thead>
                 <tbody>
                     @forelse($items as $it)
-                        <tr>
+<tr>
                             <td>{{ $it->id_pelaporan }}</td>
                             <td>{{ $it->created_at->format('d M Y H:i') }}</td>
                             <td>{{ optional($it->siswa)->nis ?? '—' }}</td>
                             <td>{{ $it->kategori->nama ?? '—' }}</td>
-                            <td>{{ $it->lokasi }}</td>
-                            <td>{{ $it->ket }}</td>
+                            <td>
+                                @if($it->foto)
+                                    <img src="{{ asset('storage/' . $it->foto) }}" alt="Foto" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
+                                @endif
+                                {{ $it->lokasi }}
+                            </td>
+                            <td>{{ Str::limit($it->ket, 100) }}</td>
                             <td style="white-space:nowrap">
-                                <a href="{{ route('admin.aspirasi.edit', $it->id_pelaporan) }}">Edit</a>
+                                <a href="{{ route('admin.aspirasi.edit', $it->id_pelaporan) }}" class="btn ghost">Edit Status</a>
                             </td>
                         </tr>
                     @empty

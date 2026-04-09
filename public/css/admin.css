@@ -1,0 +1,26 @@
+/* Simple admin dashboard styles */
+:root{--bg:#f6f7fb;--card:#ffffff;--accent:#3b82f6;--muted:#6b7280}
+body{font-family:Inter,system-ui,Arial,Helvetica,sans-serif;margin:0;background:var(--bg);color:#111}
+.container{max-width:1100px;margin:0 auto;padding:20px}
+.admin-header{background:#fff;border-bottom:1px solid #e6e9ef}
+.admin-header .container{display:flex;align-items:center;gap:16px}
+.brand{font-weight:700;color:var(--accent);text-decoration:none}
+.nav{margin-left:auto;display:flex;gap:12px;align-items:center}
+.nav a{color:#333;text-decoration:none}
+.inline-form{margin:0}
+.link-button{background:none;border:0;color:#333;cursor:pointer;padding:6px}
+.main{padding:24px}
+.grid{display:flex;gap:16px;margin-bottom:20px}
+.card{background:var(--card);padding:16px;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,0.06);flex:1}
+.card-title{font-size:13px;color:var(--muted)}
+.card-value{font-size:24px;font-weight:700}
+.table{width:100%;border-collapse:collapse;background:var(--card);border-radius:8px;overflow:hidden}
+.table th,.table td{padding:12px;border-bottom:1px solid #eef2f7;text-align:left}
+.page-title{margin-top:0}
+.btn{background:var(--accent);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer}
+.form label{display:block;margin-bottom:8px}
+.auth{max-width:400px;margin:40px auto}
+.flash{padding:10px;border-radius:6px;margin-bottom:12px}
+.flash.success{background:#ecfdf5;color:#065f46}
+.flash.error{background:#fff1f2;color:#991b1b}
+.admin-footer{padding:18px;text-align:center;color:#6b7280}

@@ -21,17 +21,25 @@ class AdminController extends Controller
 
     public function doLogin(Request $request)
     {
-        $request->validate([
-            'username' => 'required|string',
+$request->validate([
             'password' => 'required|string',
+            'username' => 'nullable|string',
+            'nis' => 'nullable|string|max:10',
+            'email' => 'nullable|email',
         ]);
 
-        $username = $request->username;
-        $password = $request->password;
+        $identifier = $request->input('nis') ?: $request->input('username') ?: $request->input('email');
+        $password = $request->input('password');
+
+        if (! $identifier) {
+            return back()->withErrors([
+                'username' => 'Username atau email diperlukan!'
+            ])->withInput();
+        }
 
         // Try to find user by email or name
-        $user = User::where('email', $username)
-            ->orWhere('name', $username)
+        $user = User::where('email', $identifier)
+            ->orWhere('name', $identifier)
             ->first();
 
         if ($user && Hash::check($password, $user->password)) {
@@ -44,7 +52,7 @@ class AdminController extends Controller
 
         return back()->withErrors([
             'username' => 'Username atau password salah!'
-        ])->onlyInput('username');
+        ])->withInput();
     }
 
     public function dashboard(Request $request)
@@ -74,7 +82,7 @@ class AdminController extends Controller
                 'pelaporan' => $p,
                 'siswa' => $p->siswa,
                 'kategori' => $p->kategori->nama ?? 'Tanpa Kategori',
-                'status' => 'Pending', // Demo: bisa di-update dengan join Aspirasi nanti
+                'status' => 'Pending',
                 'feedback' => '-',
             ];
         });

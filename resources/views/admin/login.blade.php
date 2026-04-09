@@ -27,8 +27,8 @@
 
             <form method="POST" action="{{ route('admin.login.post') }}" style="margin-top:1rem">
                 @csrf
-                <label>Username</label>
-                <input name="username" value="{{ old('username') }}" required />
+<label>NIS / Username / Email</label>
+                <input name="username" value="{{ old('username') }}" required maxlength="255" placeholder="NIS, nama, atau email" />
                 <label style="margin-top:.6rem">Password</label>
                 <input type="password" name="password" required />
                 <button type="submit">Login</button>

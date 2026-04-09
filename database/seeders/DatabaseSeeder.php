@@ -16,12 +16,7 @@ public function run(): void
     {
         // Delegate admin creation to AdminSeeder
         $this->call(AdminSeeder::class);
-
-        \App\Models\Kategori::create(['ket_kategori' => 'Berita']);
-        \App\Models\Kategori::create(['ket_kategori' => 'Fasilitas']);
-        \App\Models\Kategori::create(['ket_kategori' => 'Kebersihan']);
-        \App\Models\Kategori::create(['ket_kategori' => 'Keamanan']);
-        \App\Models\Kategori::create(['ket_kategori' => 'Lainnya']);
+        $this->call(KategoriSeeder::class);
 
         // Uncomment untuk test users/siswa
         // \App\Models\User::factory(10)->create();

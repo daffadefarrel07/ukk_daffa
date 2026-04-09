@@ -1,20 +1,13 @@
-# TODO List - Hardcoded Admin &amp; Kategori Berita
+# TODO: Add Photo Upload Feature for Students
 
-**Status: Completed**
+## Steps:
+- [x] 1. Create migration `database/migrations/2024_10_28_100000_add_foto_to_input_aspirasis_table.php`
+- [x] 2. Update `app/Models/InputAspirasi.php` ($fillable)
+- [x] 3. Update `app/Http/Controllers/StudentController.php` (storeAspirasi: validation + upload)
+- [x] 4. Update `resources/views/siswa/create_aspirasi.blade.php` (add file input)
+- [x] 5. Update `resources/views/siswa/dashboard.blade.php` (display photo)
+- [x] 6. Run `php artisan migrate`
+- [x] 7. Run `php artisan storage:link`
+- [ ] 8. Test feature (login as siswa, create aspirasi with photo, verify upload/display in dashboard)
 
-### 1. Create AdminController.php 
-- Hardcoded login: username `admin`, password `admin123`
-- Dashboard with queries and filters
-- [x] Complete
-
-### 2. Update DatabaseSeeder.php
-- Seed Kategori: Berita, Fasilitas, Kebersihan, Keamanan
-- [x] Complete
-
-### 3. Test
-- Run `php artisan db:seed`
-- Visit /admin/login, login, check dashboard
-- Siswa bisa pilih kategori Berita di form aspirasi
-- [ ] Complete
-
-**Next step: Update TODO after each completion.**
+**Bug fixed (NIS max:10). Feature ready. Test now.**

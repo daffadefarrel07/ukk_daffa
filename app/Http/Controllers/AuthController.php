@@ -14,19 +14,23 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-    public function login(Request $request)
+public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => 'required|email',
+            'nis' => 'required|string|max:10',
             'password' => 'required',
         ]);
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
+            $user = auth()->user();
+            if ($user->is_admin) {
+                return redirect()->route('admin.dashboard');
+            }
             return redirect()->intended('/siswa/dashboard');
         }
 
-        return back()->withErrors(['email' => 'Email atau password salah'])->onlyInput('email');
+return back()->withErrors(['nis' => 'NIS atau password salah'])->onlyInput('nis');
     }
 
     public function showRegister()
@@ -34,17 +38,17 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
-    public function register(Request $request)
+public function register(Request $request)
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'nis' => 'required|string|max:10|unique:users,nis',
             'password' => 'required|confirmed|min:6',
         ]);
 
         $user = User::create([
             'name' => $data['name'],
-            'email' => $data['email'],
+            'nis' => $data['nis'],
             'password' => Hash::make($data['password']),
         ]);
 

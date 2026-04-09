@@ -37,6 +37,9 @@ Route::get('/siswa/dashboard', [StudentController::class, 'dashboard'])->middlew
 Route::get('/siswa/aspirasi/create', [StudentController::class, 'createAspirasi'])->middleware('auth')->name('siswa.aspirasi.create');
 Route::post('/siswa/aspirasi', [StudentController::class, 'storeAspirasi'])->middleware('auth')->name('siswa.aspirasi.store');
 
+// AJAX dashboard data endpoint
+Route::get('/siswa/dashboard/data', [StudentController::class, 'dashboardData'])->middleware('auth')->name('siswa.dashboard.data');
+
 // Unified dashboard route: render siswa dashboard for siswa or show same layout for other users
 Route::get('/dashboard', function () {
     $user = auth()->user();
@@ -70,7 +73,7 @@ Route::get('/dashboard', function () {
 
 // Admin dashboard
 use App\Http\Controllers\AdminController;
-Route::middleware(['auth','admin'])->group(function () {
+Route::middleware('admin')->group(function () {
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::post('/admin/logout', [AdminController::class, 'logoutAdmin'])->name('admin.logout');
     // Admin aspirasi pages
@@ -84,5 +87,15 @@ Route::middleware(['auth','admin'])->group(function () {
 // Admin login (hardcoded credentials)
 Route::get('/admin/login', [AdminController::class, 'showLogin'])->name('admin.login');
 Route::post('/admin/login', [AdminController::class, 'doLogin'])->name('admin.login.post');
+
+// Allow GET access to /admin/logout to redirect (avoid 419 when user visits via GET)
+Route::get('/admin/logout', function () {
+    return redirect()->route('admin.dashboard');
+});
+
+// Allow GET to /logout (redirect to login) to prevent 419 when visited directly
+Route::get('/logout', function () {
+    return redirect()->route('login');
+});
 
 // Note: `user.dashboard` route removed — non-siswa users are redirected via /dashboard

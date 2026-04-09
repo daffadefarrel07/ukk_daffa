@@ -11,10 +11,12 @@
         .wrap{max-width:720px;margin:3rem auto;padding:1rem}
         .card{background:#fff;padding:1rem;border-radius:12px;box-shadow:0 6px 20px rgba(15,23,42,0.06)}
         label{display:block;margin-top:.75rem;font-weight:600}
-        input[type=text],select,textarea{width:100%;padding:.6rem;border-radius:8px;border:1px solid #e6eef7;margin-top:.4rem}
-        button{margin-top:1rem;padding:.6rem 1rem;border-radius:8px;background:#ef4444;color:#fff;border:0}
+        input[type=text],select,textarea{width:100%;padding:.6rem;border-radius:8px;border:1px solid #e6eef7;margin-top:.4rem;box-sizing:border-box}
+        button{margin-top:1rem;padding:.6rem 1rem;border-radius:8px;background:#ef4444;color:#fff;border:0;cursor:pointer}
+        .loading{opacity:.7;pointer-events:none}
         .muted{color:#6b7280}
-        a.btn-back{display:inline-block;margin-top:1rem;color:#ef4444}
+        a.btn-back{display:inline-block;margin-top:1rem;color:#ef4444;text-decoration:none}
+        .success{background:#ecfdf5;border:1px solid #10b981;color:#065f46;padding:1rem;border-radius:8px;margin-top:1rem}
     </style>
 </head>
 <body>
@@ -27,34 +29,84 @@
                 <div style="margin-top:1rem;color:#b91c1c;font-weight:600">{{ $errors->first() }}</div>
             @endif
 
-            <form method="POST" action="{{ route('siswa.aspirasi.store') }}">
+            <form id="aspirasi-form">
                 @csrf
-                <label for="nis">NIS</label>
-                <input id="nis" name="nis" type="text" required value="{{ old('nis', optional($siswa)->nis ?? '') }}" autofocus />
+                <label for="nis">NIS <span class="muted">(required)</span></label>
+<input id="nis" name="nis" type="text" required value="{{ old('nis', optional($siswa)->nis ?? '') }}" autofocus maxlength="10" placeholder="Max 10 karakter" />
 
-                <label for="kategori_id">Kategori</label>
+                <label for="kategori_id">Kategori <span class="muted">(required)</span></label>
                 <select id="kategori_id" name="kategori_id" required>
-                    <option value="">Pilih kategori</option>
+                    <option value="">--- Pilih Kategori ---</option>
                     @foreach($kategoris as $k)
-                        <option value="{{ $k->id }}">{{ $k->nama }}</option>
+                        <option value="{{ $k->id }}" {{ old('kategori_id') == $k->id ? 'selected' : '' }}>
+                            {{ $k->nama }}
+                        </option>
                     @endforeach
                 </select>
 
-                <label for="lokasi">Lokasi / Judul singkat</label>
-                <input id="lokasi" name="lokasi" type="text" required />
+<label for="lokasi">Lokasi / Judul <span class="muted">(required)</span></label>
+                <input id="lokasi" name="lokasi" type="text" required value="{{ old('lokasi') }}" maxlength="255" />
 
-                <label for="ket">Keterangan (opsional)</label>
-                <textarea id="ket" name="ket" rows="4"></textarea>
+                <label for="foto">Foto (opsional, max 2MB, JPG/PNG/GIF)</label>
+                <input id="foto" name="foto" type="file" accept="image/*" />
 
-                <button type="submit">Kirim Aspirasi</button>
+                <label for="ket">Keterangan</label>
+                <textarea id="ket" name="ket" rows="4" maxlength="500">{{ old('ket') }}</textarea>
+
+                <button id="submit-btn" type="submit">📤 Kirim Aspirasi</button>
             </form>
 
             <a class="btn-back" href="{{ route('dashboard') }}">← Kembali ke Dashboard</a>
+
             <script>
-                // if autofocus isn't supported, ensure focus via JS
-                document.addEventListener('DOMContentLoaded', function(){
-                    var nis = document.getElementById('nis');
-                    if(nis) nis.focus();
+                document.addEventListener('DOMContentLoaded', function() {
+                    const form = document.getElementById('aspirasi-form');
+                    const submitBtn = document.getElementById('submit-btn');
+                    const nisInput = document.getElementById('nis');
+                    
+                    if (nisInput) nisInput.focus();
+                    
+                    form.addEventListener('submit', async function(e) {
+                        e.preventDefault();
+                        
+                        const formData = new FormData(form);
+                        
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'Mengirim...';
+                        document.body.classList.add('loading');
+                        
+                        try {
+const response = await fetch('{{ route('siswa.aspirasi.store') }}', {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json'
+                                }
+                            });
+                            
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                                const msgDiv = document.createElement('div');
+                                msgDiv.className = 'success';
+                                msgDiv.innerHTML = '✅ ' + data.message;
+                                form.parentNode.insertBefore(msgDiv, form.nextSibling);
+                                setTimeout(() => {
+                                    window.location.href = data.redirect;
+                                }, 1500);
+                            } else {
+                                alert('❌ Gagal: ' + (data.message || 'Unknown error'));
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            alert('❌ Network error. Coba lagi.');
+                        } finally {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = '📤 Kirim Aspirasi';
+                            document.body.classList.remove('loading');
+                        }
+                    });
                 });
             </script>
         </div>

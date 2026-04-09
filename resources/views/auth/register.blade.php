@@ -210,9 +210,9 @@
                 </div>
 
                 <div class="input-group">
-                    <i class="fas fa-envelope input-icon"></i>
-                    <input class="input-field" type="email" name="email" value="{{ old('email') }}" required placeholder=" ">
-                    <label class="input-label">Email</label>
+                    <i class="fas fa-id-badge input-icon"></i>
+                    <input class="input-field" type="text" name="nis" value="{{ old('nis') }}" required placeholder=" " maxlength="10">
+                    <label class="input-label">NIS (max 10 digit)</label>
                 </div>
 
                 <div class="password-row">

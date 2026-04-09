@@ -27,8 +27,8 @@
 
                 <form method="POST" action="{{ url('/login') }}">
                     @csrf
-                    <label>Email</label>
-                    <input class="input" type="email" name="email" value="{{ old('email') }}" required autofocus>
+<label>NIS (10 digit)</label>
+                    <input class="input" type="text" name="nis" value="{{ old('nis') }}" required autofocus maxlength="10">
 
                     <label style="margin-top:.75rem">Password</label>
                     <input class="input" type="password" name="password" required>

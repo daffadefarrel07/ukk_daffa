@@ -13,24 +13,43 @@ class StudentController extends Controller
 {
     public function dashboard()
     {
+        return $this->dashboardDataResponse();
+    }
+
+    public function dashboardData()
+    {
+        return $this->dashboardDataResponse();
+    }
+
+    private function dashboardDataResponse()
+    {
         $user = auth()->user();
         if (! $user) {
-            return redirect()->route('login');
+            abort(401, 'Unauthorized');
         }
 
         $siswa = $user->siswa;
         if (! $siswa) {
-            return redirect('/')->with('error', 'Siswa tidak ditemukan atau belum dikaitkan dengan akun Anda.');
+            $siswa = Siswa::create([
+                'user_id' => $user->id,
+'nis' => $user->nis ?? substr($user->email, 0, 10),
+                'kelas' => '-'
+            ]);
         }
 
-        $inputs = $siswa->inputAspirasis()->with('kategori')->get();
+        // Load inputs directly to avoid issues with relationship caching; include aspirasi relation
+        $inputs = InputAspirasi::where('siswa_id', $siswa->id)
+            ->with(['kategori','aspirasi'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $items = [];
         $statusMap = ['Menunggu' => 0, 'Proses' => 50, 'Selesai' => 100];
         $progressSum = 0;
         $feedbackList = [];
         foreach ($inputs as $input) {
-            $asp = Aspirasi::where('kategori_id', $input->kategori_id)->latest()->first();
+            // Prefer Aspirasi linked to this input (admin feedback/status). If none, default to Menunggu.
+            $asp = $input->aspirasi ?? null;
             $status = $asp?->status ?? 'Menunggu';
             $feedback = $asp?->feedback;
 
@@ -71,7 +90,13 @@ class StudentController extends Controller
         });
         $latestFeedback = $feedbackList[0]['text'] ?? null;
 
-        return view('siswa.dashboard', compact('siswa','items','avgProgress','completionPercent','aspirasiCount','latestFeedback','waitingCount'));
+        $data = compact('siswa','items','avgProgress','completionPercent','aspirasiCount','latestFeedback','waitingCount');
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json($data);
+        }
+
+        return view('siswa.dashboard', $data);
     }
 
     public function createAspirasi()
@@ -81,7 +106,7 @@ class StudentController extends Controller
 
         // Allow accessing the create form even if the user doesn't have a linked siswa.
         $siswa = $user->siswa; // may be null
-        $kategoris = Kategori::all();
+        $kategoris = Kategori::orderBy('ket_kategori')->get();
         return view('siswa.create_aspirasi', compact('siswa','kategoris'));
     }
 
@@ -91,12 +116,19 @@ class StudentController extends Controller
         if (! $user) return redirect()->route('login');
         // Accept NIS from the form. If the logged-in user has a linked siswa, prefer it,
         // otherwise find or create a siswa record by provided NIS.
-        $data = $request->validate([
-            'nis' => 'required|string|max:20',
+$data = $request->validate([
+'nis' => 'required|string|max:10',
             'kategori_id' => 'required|exists:kategoris,id',
             'lokasi' => 'required|string|max:255',
             'ket' => 'nullable|string|max:500',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
+
+$fotoPath = null;
+        if ($request->hasFile('foto')) {
+            $filename = \Illuminate\Support\Str::uuid() . '.' . $request->file('foto')->getClientOriginalExtension();
+            $fotoPath = $request->file('foto')->storeAs('fotos', $filename, 'public');
+        }
 
         // prefer linked siswa when available
         $siswa = $user->siswa;
@@ -106,9 +138,9 @@ class StudentController extends Controller
             if (! $siswa) {
                 // create a minimal siswa record (no user association)
                 $siswa = Siswa::create([
-                    'nis' => $data['nis'],
+'nis' => $data['nis'],
                     'kelas' => '-',
-                    'user_id' => null,
+                    'user_id' => $user->id,
                 ]);
             }
         }
@@ -116,12 +148,33 @@ class StudentController extends Controller
         // Ensure ket is not null (DB migration expects a value)
         $ket = $data['ket'] ?? '';
 
-        InputAspirasi::create([
+$input = InputAspirasi::create([
             'siswa_id' => $siswa->id,
             'kategori_id' => $data['kategori_id'],
             'lokasi' => $data['lokasi'],
             'ket' => $ket,
+            'foto' => $fotoPath,
         ]);
+
+        // Create a corresponding Aspirasi record so admin can set status/feedback later
+        try {
+            Aspirasi::create([
+                'kategori_id' => $data['kategori_id'],
+                'status' => 'Menunggu',
+                'feedback' => null,
+                'input_pelaporan_id' => $input->id,
+            ]);
+        } catch (\Throwable $e) {
+            // ignore if creation fails; admin can create later
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Aspirasi berhasil dikirim.',
+                'redirect' => route('dashboard')
+            ]);
+        }
 
         return redirect()->route('dashboard')->with('success', 'Aspirasi berhasil dikirim.');
     }

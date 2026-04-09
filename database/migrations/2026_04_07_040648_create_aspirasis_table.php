@@ -11,10 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('aspirasis', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+     Schema::create('aspirasis', function (Blueprint $table) {
+    $table->id('id_aspirasi');
+
+    $table->foreignId('kategori_id')->constrained('kategoris')->onDelete('cascade');
+
+    $table->enum('status', ['Menunggu', 'Proses', 'Selesai'])->default('Menunggu');
+    $table->integer('feedback')->nullable();
+
+    $table->timestamps();
+});
     }
 
     /**
